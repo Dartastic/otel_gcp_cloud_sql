@@ -1,11 +1,12 @@
-// Licensed under the Dartastic Pro Software License Agreement.
+// Licensed under the Apache License, Version 2.0
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_gcp_cloud_sql_suppression.dart';
 
 class GcpCloudSqlResult {
+  /// Creates a result.
   const GcpCloudSqlResult({
     this.project,
     this.region,
@@ -59,8 +60,13 @@ class GcpCloudSqlResult {
   final String? errorMessage;
 }
 
+/// What a traced call returned: the value for the caller plus fields
+/// recorded on the span.
 class GcpCloudSqlCallResult<T> {
+  /// Creates a call result.
   const GcpCloudSqlCallResult({required this.value, this.result});
+
+  /// The value returned to the caller.
   final T value;
   final GcpCloudSqlResult? result;
 }
@@ -68,135 +74,140 @@ class GcpCloudSqlCallResult<T> {
 Future<T> tracedGcpCloudSql<T>({
   required String operation,
   required Future<GcpCloudSqlCallResult<T>> Function() invoke,
-  Tracer? tracer,
+  APITracer? tracer,
 }) async {
   if (gcpCloudSqlInstrumentationSuppressed()) {
     final r = await invoke();
     return r.value;
   }
-  final t = tracer ?? OTel.tracerProvider().getTracer('otel_gcp_cloud_sql');
+  final t = tracer ?? OTelAPI.tracerProvider().getTracer('otel_gcp_cloud_sql');
   final span = t.startSpan('gcp_cloud_sql $operation', kind: SpanKind.client);
   try {
     span.addAttributes(
-        OTel.attributes([OTel.attributeString('rpc.system', 'gcp')]));
+        OTelAPI.attributes([OTelAPI.attributeString('rpc.system', 'gcp')]));
+    span.addAttributes(OTelAPI.attributes(
+        [OTelAPI.attributeString('rpc.service', 'CloudSQL')]));
     span.addAttributes(
-        OTel.attributes([OTel.attributeString('rpc.service', 'CloudSQL')]));
-    span.addAttributes(
-        OTel.attributes([OTel.attributeString('rpc.method', operation)]));
+        OTelAPI.attributes([OTelAPI.attributeString('rpc.method', operation)]));
     final r = await invoke();
     final res = r.result;
     if (res != null) {
       if (res.project != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('gcp.project_id', res.project!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('gcp.project_id', res.project!)]));
       }
       if (res.region != null) {
-        span.addAttributes(
-            OTel.attributes([OTel.attributeString('gcp.region', res.region!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('gcp.region', res.region!)]));
       }
       if (res.instanceName != null) {
-        span.addAttributes(OTel.attributes([
-          OTel.attributeString('gcp.cloud_sql.instance.name', res.instanceName!)
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString(
+              'gcp.cloud_sql.instance.name', res.instanceName!)
         ]));
       }
       if (res.databaseEngine != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('db.system', res.databaseEngine!)]));
-        span.addAttributes(OTel.attributes([
-          OTel.attributeString('gcp.cloud_sql.engine', res.databaseEngine!)
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('db.system', res.databaseEngine!)]));
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString('gcp.cloud_sql.engine', res.databaseEngine!)
         ]));
       }
       if (res.databaseVersion != null) {
-        span.addAttributes(OTel.attributes([
-          OTel.attributeString('gcp.cloud_sql.version', res.databaseVersion!)
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString('gcp.cloud_sql.version', res.databaseVersion!)
         ]));
       }
       if (res.availabilityType != null) {
-        span.addAttributes(OTel.attributes([
-          OTel.attributeString(
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString(
               'gcp.cloud_sql.availability_type', res.availabilityType!)
         ]));
       }
       if (res.tier != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('gcp.cloud_sql.tier', res.tier!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('gcp.cloud_sql.tier', res.tier!)]));
       }
       if (res.diskSizeGb != null) {
-        span.addAttributes(OTel.attributes([
-          OTel.attributeInt('gcp.cloud_sql.disk_size_gb', res.diskSizeGb!)
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeInt('gcp.cloud_sql.disk_size_gb', res.diskSizeGb!)
         ]));
       }
       if (res.diskType != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('gcp.cloud_sql.disk_type', res.diskType!)]));
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString('gcp.cloud_sql.disk_type', res.diskType!)
+        ]));
       }
       if (res.databaseName != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('db.name', res.databaseName!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeString('db.name', res.databaseName!)]));
       }
       if (res.statementKind != null) {
-        span.addAttributes(OTel.attributes([
-          OTel.attributeString(
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString(
               'gcp.cloud_sql.statement.kind', res.statementKind!)
         ]));
       }
       if (res.rowCount != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeInt('gcp.cloud_sql.row_count', res.rowCount!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeInt('gcp.cloud_sql.row_count', res.rowCount!)]));
       }
       if (res.affectedRows != null) {
-        span.addAttributes(OTel.attributes([
-          OTel.attributeInt('gcp.cloud_sql.affected_rows', res.affectedRows!)
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeInt('gcp.cloud_sql.affected_rows', res.affectedRows!)
         ]));
       }
       if (res.queryDurationMs != null) {
-        span.addAttributes(OTel.attributes([
-          OTel.attributeInt(
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeInt(
               'gcp.cloud_sql.query_duration_ms', res.queryDurationMs!)
         ]));
       }
       if (res.connectorType != null) {
-        span.addAttributes(OTel.attributes([
-          OTel.attributeString(
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString(
               'gcp.cloud_sql.connector.type', res.connectorType!)
         ]));
       }
       if (res.iamAuth != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeBool('gcp.cloud_sql.iam_auth', res.iamAuth!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeBool('gcp.cloud_sql.iam_auth', res.iamAuth!)]));
       }
       if (res.usesSsl != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeBool('gcp.cloud_sql.ssl', res.usesSsl!)]));
+        span.addAttributes(OTelAPI.attributes(
+            [OTelAPI.attributeBool('gcp.cloud_sql.ssl', res.usesSsl!)]));
       }
       if (res.operationType != null) {
-        span.addAttributes(OTel.attributes([
-          OTel.attributeString(
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString(
               'gcp.cloud_sql.operation.type', res.operationType!)
         ]));
       }
       if (res.operationStatus != null) {
-        span.addAttributes(OTel.attributes([
-          OTel.attributeString(
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString(
               'gcp.cloud_sql.operation.status', res.operationStatus!)
         ]));
       }
       if (res.replicaName != null) {
-        span.addAttributes(OTel.attributes([
-          OTel.attributeString('gcp.cloud_sql.replica.name', res.replicaName!)
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString(
+              'gcp.cloud_sql.replica.name', res.replicaName!)
         ]));
       }
       if (res.backupId != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeString('gcp.cloud_sql.backup.id', res.backupId!)]));
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString('gcp.cloud_sql.backup.id', res.backupId!)
+        ]));
       }
       if (res.statusCode != null) {
-        span.addAttributes(OTel.attributes(
-            [OTel.attributeInt('http.response.status_code', res.statusCode!)]));
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeInt('http.response.status_code', res.statusCode!)
+        ]));
       }
       if (res.errorCode != null) {
-        span.addAttributes(OTel.attributes([
-          OTel.attributeString('gcp.cloud_sql.error.code', res.errorCode!)
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString('gcp.cloud_sql.error.code', res.errorCode!)
         ]));
       }
       final fail = res.errorCode != null ||
@@ -204,8 +215,8 @@ Future<T> tracedGcpCloudSql<T>({
           res.operationStatus == 'FAILED' ||
           res.operationStatus == 'ERROR';
       if (fail) {
-        span.addAttributes(OTel.attributes([
-          OTel.attributeString(ErrorResource.errorType.key,
+        span.addAttributes(OTelAPI.attributes([
+          OTelAPI.attributeString(ErrorAttributes.errorType.key,
               res.errorCode ?? 'gcp_cloud_sql.error')
         ]));
         span.setStatus(SpanStatusCode.Error, res.errorMessage);
